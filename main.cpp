@@ -1,0 +1,72 @@
+#include <opencv2/opencv.hpp>
+#include <iostream>
+#include <winsock2.h>
+#include "BAAS.h"
+
+#pragma comment(lib, "ws2_32.lib")
+using namespace cv;
+using namespace std;
+using json = nlohmann::json;
+
+
+optional<int> func(int c) {
+    if(c == 0) return 0;
+    return nullopt;
+}
+
+int main() {
+    system("chcp 65001");
+    try {
+        init_globals();
+        string config_name = "default_config";
+        cv::Mat img;
+        BAAS baas(config_name);
+        BAASConfig config;
+        BAASConnection* conn = baas.get_connection();
+        conn->start_self();
+        baas.update_screenshot_array();
+        baas.get_latest_screenshot(img);
+//        baas.feature_appear("UI-AT_competition_start_battle", config, true);
+//        return 0;
+        baas.solve_procedure("UI-GO-TO_main_page_competition", config);
+        baas.solve_procedure("COMPETITION_SOLVE", config);
+//        BAASConnection* connection = baas.get_connection();
+//        connection->start_self();
+//        resource->show();
+
+
+
+//        config_name = "resource\\module_usage\\main_page.json";
+//        BAASConfig procedure(config_name, baas.get_logger());
+//        BAASConfig c = BAASConfig(procedure.get<json>("UI-GO-TO_main_page_home"), baas.get_logger());
+//        string name = "daily-chance-all-used";
+//        BAASRectangle region = {217, 867, 501, 902};
+//        BAASDevelopUtils::extract_image_rgb_range(img, name, region, {0, 0, 0}, {255, 255, 255});
+        }
+//        resource->get(connection.get_server(), connection.get_language(), "common", "back", img);
+//        cv::Mat mast;
+//        BAASRectangle region = {0, 0, img.cols, img.rows};
+//        BAASImageUtil::gen_not_black_region_mask(img, mast, region);
+
+
+//        return 0;
+
+//    }
+    catch (const std::exception& e){
+        BAASGlobalLogger->BAASInfo(e.what());
+    }
+
+    return 0;
+}
+/*
+    y -->   601 ,  662
+    x -->   847 , 932
+            946, 1038
+            1048, 1130
+
+            883, 688
+            985, 621
+            1087, 622
+
+
+*/

@@ -1,0 +1,8 @@
+//
+// Created by pc on 2024/4/12.
+//
+
+#ifndef BAAS_BAASEXCEPTIONHANDLER_H_
+#define BAAS_BAASEXCEPTIONHANDLER_H_
+
+#endif //BAAS_BAASEXCEPTIONHANDLER_H_
