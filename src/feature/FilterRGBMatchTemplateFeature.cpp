@@ -21,7 +21,7 @@ using namespace nlohmann;
  * }
  */
 FilterRGBMatchTemplateFeature::FilterRGBMatchTemplateFeature(BAASConfig *config) : BaseFeature(config) {
-
+    self_average_cost_map.clear();
 }
 
 bool FilterRGBMatchTemplateFeature::compare(BAASConfig *parameter, const cv::Mat &image, BAASConfig &output) {
@@ -75,9 +75,16 @@ bool FilterRGBMatchTemplateFeature::compare(BAASConfig *parameter, const cv::Mat
     log.emplace_back("Match Template Result : ");
     log.push_back("Max Similarity : " + to_string(maxVal));
 
-    double threshold = parameter->getDouble("threshold", 0.8);
-    if (maxVal < threshold) {
-        log.emplace_back("Max Similarity less than threshold [" + to_string(threshold) + "], Quit.");
+    double threshold_min, threshold_max;
+    try{
+        threshold_min = parameter->get <double>("/threshold/0");
+        threshold_max = parameter->get <double>("/threshold/1");
+    } catch (KeyError &e) {
+        threshold_min = parameter->getDouble("threshold", 0.8);
+        threshold_max = 1.0;
+    }
+    if (maxVal < threshold_min || maxVal > threshold_max)  {
+        log.emplace_back("maxVal not in range [" + to_string(threshold_min) + ", " + to_string(threshold_max) + "], Quit.");
         output.insert("log", log);
         return false;
     }
@@ -91,7 +98,11 @@ bool FilterRGBMatchTemplateFeature::compare(BAASConfig *parameter, const cv::Mat
     return true;
 }
 
-double FilterRGBMatchTemplateFeature::self_average_cost(const cv::Mat &image, const std::string &server,const std::string &language) const {
+double FilterRGBMatchTemplateFeature::self_average_cost(const cv::Mat &image, const std::string &server,const std::string &language) {
+    string server_language = server + "_" + language;
+    auto it = self_average_cost_map.find(server_language);
+    if(it != self_average_cost_map.end()) if(it->second.has_value()) return it->second.value();
+
     string group = config->getString("group");
     assert(!group.empty());
     string name = config->getString("name");
@@ -99,5 +110,8 @@ double FilterRGBMatchTemplateFeature::self_average_cost(const cv::Mat &image, co
 
     BAASImage template_image;
     resource->get(server, language, group, name, template_image);
-    return template_image.image.rows * template_image.image.cols;
+
+    double average_cost = template_image.image.rows * template_image.image.cols;
+    self_average_cost_map[server_language] = average_cost;
+    return average_cost;
 }

@@ -59,6 +59,18 @@ public:
         return get<int>(key, default_value);
     }
 
+    inline long getLong(const std::string &key, long default_value=0) {
+        return get<long>(key, default_value);
+    }
+
+    inline unsigned long getULong(const std::string &key, unsigned long default_value=0) {
+        return get<unsigned long>(key, default_value);
+    }
+
+    inline long long getLLong(const std::string &key, long long default_value=0) {
+        return get<long long>(key, default_value);
+    }
+
     inline float getFloat(const std::string &key, float default_value = 0.0f) {
         return get<float>(key, default_value);
     }
@@ -158,7 +170,9 @@ public:
         if(key[0]!='/') {
             auto it = config.find(key);
             if(it == config.end()) {            // not exist, create it
-                logger->BAASInfo("create \" " + key + " \" in config file : [ " + path + " ]");
+                std::string log = "create key [ " + key + " ]";
+                if(!path.empty())   log += " \" in config file : [ " + path + " ]";
+                logger->BAASInfo(log);
                 config[key] = value;
                 modified.push_back({{"op", "add"}, {"path", "/" + key}, {"value", value}});
             }
@@ -180,6 +194,11 @@ public:
             modified.push_back({{"op", "add"}, {"path", key}, {"value", value}});
         }
     }
+
+    void update(const BAASConfig* patch) {
+        for(auto &i: patch->get_config().items()) update(i.key(), i.value());
+    }
+
     template<typename T>
     inline void update_and_save(const std::string &key, T &value) {
         update(key, value);
